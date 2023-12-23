@@ -1,12 +1,13 @@
-﻿using System;
+﻿//Librerías
+using System;
 using System.Net.Http;
 using System.Text;
 using Microsoft.Xrm.Sdk;
 using Newtonsoft.Json;
 
-namespace JiraIntegrationPlugin
+namespace JiraIntegrationPlugin  //Nombre del plugin/proyecto
 {
-    public class FollowupPlugin : IPlugin
+    public class FollowupPlugin : IPlugin 
     {
         public void Execute(IServiceProvider serviceProvider)
         {
@@ -21,7 +22,7 @@ namespace JiraIntegrationPlugin
                 // Verificar que la entidad es "cedi_jiraintegracion"
                 if (targetEntity.LogicalName.ToLower() == "cedi_jiraintegracion")
                 {
-                    // Llamada a la API de Jira para crear un issue
+                    // Llamada a la API de Jira para crear un issue. La contraseña es una API Token generada en Jira
                     string jiraApiUrl = "https://interbanking-sandbox-856.atlassian.net/rest/api/3/issue";
                     string jiraUsername = "rodrigo.bustos@cedi.com.ar";
                     string jiraPassword = "ATATT3xFfGF0ycELOomr3PqKRlEVK7hJM5_ABA5wMqd_8jidIo-A51XlpdCA3jE5grkm6PYgs_FUKFMAyB5NOo8WqMHK5mZ1qdCxrQ3VPRxDPniHGl-cyuu3kJizXzREqvuMpGr3_GghVP7-lAj8FeghyURfSN0yiWsH_gBzUX_Y9BYPSmgHquE=9DF1D71B";
@@ -48,7 +49,7 @@ namespace JiraIntegrationPlugin
                 string KeyProject = targetEntity.GetAttributeValue<string>("cedi_claveproyecto");
                 string urlCase = targetEntity.GetAttributeValue<string>("cedi_url_caso");
 
-                // Estructura de descripción
+                // El campo descripción en Jira, cuenta con un texto plano y un texto hipervínculo que redirige al caso origen en CRM
                 var descriptionCase = new Content
                 {
                     type = "doc",
@@ -63,12 +64,12 @@ namespace JiraIntegrationPlugin
 
                                 new Content
                                 {          
-                                    text = "CRM: " + DescripcionCRM,
+                                    text = "CRM: " + DescripcionCRM,    //Texto plano al inicio del campo "Descripción" en Jira
                                     type = "text"
                                 },
                                 new Content
                                 {
-                                    text = Environment.NewLine + Environment.NewLine + "Click aquí para ver el caso en CRM",
+                                    text = Environment.NewLine + Environment.NewLine + "Click aquí para ver el caso en CRM", //Texto hipervínculo
                                     type = "text",
                                     marks = new System.Collections.Generic.List<Mark>
                                     {
@@ -77,7 +78,7 @@ namespace JiraIntegrationPlugin
                                             type = "link",
                                             attrs = new LinkAttributes
                                             {
-                                                href = urlCase // Reemplaza con tu URL real
+                                                href = urlCase // Vínculo del caso donde se redirige al clickear
                                             }
                                         }
                                     }
@@ -96,7 +97,7 @@ namespace JiraIntegrationPlugin
                     // Configurar la autenticación básica para Jira
                     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
 
-                    // Crear el cuerpo del request para la creación del issue
+                    // Establece los datos obtenidos de CRM a Jira
                     var data = new
                     {
                         fields = new
@@ -111,7 +112,7 @@ namespace JiraIntegrationPlugin
                     // Convertir a JSON y realizar la llamada POST a la API de Jira
                     string jsonBody = Newtonsoft.Json.JsonConvert.SerializeObject(data, new Newtonsoft.Json.JsonSerializerSettings
                     {
-                        NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore
+                        NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore //Ignora los campos vacíos
                     });
                     HttpContent content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
